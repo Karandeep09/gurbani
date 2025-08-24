@@ -1,72 +1,89 @@
 <!DOCTYPE html>
 <html lang="pa">
+
 <head>
-  <meta charset="UTF-8">
-  <title>ASCII to Gurmukhi</title>
-  <style>
-    @font-face {
-      font-family: 'GURAKHAR';
-      src: url('./GURAKHAR.TTF') format('truetype');
-    }
-    body {
-      margin: 0;
-      font-family: 'GURAKHAR', sans-serif;
-      background: #fff;
-    }
-    .line {
-      font-size: 64px;
-	  text-align: center;
-      padding: 8px 16px;
-      border-bottom: 1px solid #eee;
-      transition: background 0.2s, color 0.2s;
-    }
-    .line.active {
-      background: #fde68a;
-      font-weight: bold;
-    }
-  </style>
+	<meta charset="UTF-8">
+	<title>ASCII to Gurmukhi</title>
+	<style>
+		@font-face {
+			font-family: 'GURAKHAR';
+			src: url('./GURAKHAR.TTF') format('truetype');
+		}
+
+		body {
+			margin: 0;
+			font-family: 'GURAKHAR', sans-serif;
+			background: #fff;
+		}
+
+		.line {
+			font-size: 30px;
+			text-align: center;
+			padding: 8px 16px;
+			transition: background 0.2s, color 0.2s;
+			height: 30px;
+		}
+
+		.line.active {
+			background: #fde68a;
+			font-weight: bold;
+		}
+	</style>
 </head>
+
 <body>
-  <div id="shabad">Loading...</div>
+	<div id="shabad">Loading...</div>
 
-  <script>
-    async function loadShabad() {
-      const response = await fetch('ਆਸਾ ਦੀ ਵਾਰ.txt');   // fetch file
-      const asciiShabad = await response.text();    // get text content
-      const lines = asciiShabad.split(/\n/);
+	<script>
+		async function loadShabad() {
+			// get ?file= param from URL
+			const params = new URLSearchParams(window.location.search);
+			const fileName = params.get("file") || "japji_sahib.txt"; // default file
 
-      const shabadDiv = document.getElementById("shabad");
-      shabadDiv.innerHTML = ""; // clear "Loading..."
+			try {
+				const response = await fetch(fileName);
+				if (!response.ok) throw new Error("File not found");
+				const asciiShabad = await response.text();
+				const lines = asciiShabad.split(/\n/);
 
-      lines.forEach(line => {
-        const div = document.createElement("div");
-        div.className = "line";
-        div.innerText = line.trim();
-        shabadDiv.appendChild(div);
-      });
+				const shabadDiv = document.getElementById("shabad");
+				shabadDiv.innerHTML = ""; // clear "Loading..."
 
-      // scroll-aware highlight
-      function highlightOnScroll() {
-        let closest = null;
-        let closestOffset = Infinity;
-        document.querySelectorAll(".line").forEach(line => {
-          const rect = line.getBoundingClientRect();
-          if (rect.top >= 0 && rect.top < closestOffset) {
-            closestOffset = rect.top;
-            closest = line;
-          }
-        });
-        if (closest) {
-          document.querySelectorAll(".line").forEach(l => l.classList.remove("active"));
-          closest.classList.add("active");
-        }
-      }
+				lines.forEach(line => {
+					const div = document.createElement("div");
+					div.className = "line";
+					div.innerText = line.trim();
+					shabadDiv.appendChild(div);
+				});
 
-      highlightOnScroll();
-      window.addEventListener("scroll", highlightOnScroll);
-    }
+				// scroll-aware highlight
+				function highlightOnScroll() {
+					if (lines.length > 1) {
+						let closest = null;
+						let closestOffset = Infinity;
+						document.querySelectorAll(".line").forEach(line => {
+							const rect = line.getBoundingClientRect();
+							if (rect.top >= 0 && rect.top < closestOffset) {
+								closestOffset = rect.top;
+								closest = line;
+							}
+						});
+						if (closest) {
+							document.querySelectorAll(".line").forEach(l => l.classList.remove("active"));
+							closest.classList.add("active");
+						}
+					}
+				}
 
-    loadShabad();
-  </script>
+				highlightOnScroll();
+				window.addEventListener("scroll", highlightOnScroll);
+			} catch (err) {
+				document.getElementById("shabad").innerText = "Error loading file: " + fileName;
+			}
+		}
+
+		loadShabad();
+	</script>
 </body>
+
 </html>
